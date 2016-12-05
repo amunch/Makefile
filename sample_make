@@ -1,10 +1,10 @@
 all: hello
 
-hello: main.o fact.o
-    g++ main.o fact.o hello.o -o hello
+hello: yo.o fact.o
+    g++ yo.o fact.o -o hello
 
-main.o: main.cpp
-    g++ -c main.cpp
+yo.o: yo.cpp
+    g++ -c yo.cpp
 
 fact.o: fact.cpp
     g++ -c fact.cpp

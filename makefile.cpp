@@ -6,35 +6,29 @@
 #include <sstream>
 #include <vector>
 #include <queue>
+#include <stdio.h>
+#include <cstring>
 
 #include <boost/algorithm/string/trim.hpp>
 
 using namespace std;
 
-struct Command {
-    string name;
-    vector<string> commands;
+typedef map<string, vector<string> > Graph;
 
-    bool operator<(const Command &c) const {
-        return this->name < c.name;
-    }
-};
-
-typedef map<Command, vector<Command> > Graph;
-
-void load_graph(Graph &g, Graph &to_sort, ifstream &file) {
+void load_graph(Graph &g, Graph &to_sort, Graph &commands, ifstream &file) {
     string line;
+    string prev_line;    
 
     g.clear();
         
     while (getline(file, line)) {
         size_t split = line.find(':');
         if (split == string::npos) {
-            if(line.empty()) {
-                continue;
+            if(!line.empty()) {
+                boost::trim(line);
+                commands[prev_line].push_back(line);
             }
-            else {
-                
+            continue;
         }
         string target  = line.substr(0, split);
         string sources = line.substr(split + 1, line.size() - split);
@@ -45,14 +39,10 @@ void load_graph(Graph &g, Graph &to_sort, ifstream &file) {
         stringstream ss(sources);
         string source;
         while (ss >> source) {
-            Command key;
-            key.name = target;
+            g[target].push_back(source);
+            to_sort[source].push_back(target);
 
-            Command value;
-            value.name = source;    
-
-            g[key].push_back(value);
-            to_sort[value].push_back(key);
+            prev_line = target;
         }
     }
 }
@@ -63,7 +53,7 @@ void dump_graph(Graph &g) {
         auto target  = pair.first;
         auto sources = pair.second;
         for (auto &source : sources) {
-            cout << "\t\"" << target.name << "\" -> \"" << source.name << "\";" << endl;
+            cout << "\t\"" << target << "\" -> \"" << source << "\";" << endl;
         }
     }
 
@@ -77,10 +67,10 @@ map<string, size_t> calculate_degrees(Graph &g, bool dump) {
         auto target = pair.first;
         auto sources = pair.second;
         for(auto &source : sources) {
-            if(!degrees.count(source.name)) {
-                degrees[source.name] = 0;
+            if(!degrees.count(source)) {
+                degrees[source] = 0;
             }
-            degrees[target.name] += 1;
+            degrees[target] += 1;
         }
     }
     if(dump) {
@@ -108,14 +98,11 @@ vector<string> topological_sort(map<string, size_t> degrees, Graph &g, bool dump
     
         sorted.push_back(node);
     
-        Command search;
-        search.name = node;
-
-        for(auto &v : g[search]) {
-            degrees[v.name] -= 1;
+        for(auto &v : g[node]) {
+            degrees[v] -= 1;
     
-            if(degrees[v.name] == 0) {
-                frontier.push(v.name);
+            if(degrees[v] == 0) {
+                frontier.push(v);
             }
         }
     }
@@ -128,6 +115,19 @@ vector<string> topological_sort(map<string, size_t> degrees, Graph &g, bool dump
     return sorted;
 }
 
+void compile(vector<string> sorted, Graph &g, Graph &commands) {
+    cout << endl;
+    for (auto s : sorted) {
+        if(g.find(s) != g.end()) {
+            vector<string> to_run = commands[s];
+            for(auto r : to_run) {
+                cout << r << endl;
+                system(r.c_str());   
+            }
+        }
+    }
+}
+
 int main() {
     ifstream file_in("sample_make");
 
@@ -138,10 +138,23 @@ int main() {
 
     Graph g;
     Graph to_sort;
+    Graph commands;
 
-    load_graph(g, to_sort, file_in);   
+    load_graph(g, to_sort, commands, file_in);   
     dump_graph(g);
 
     map<string, size_t> degrees = calculate_degrees(g, true);
     vector<string> sorted = topological_sort(degrees, to_sort, true);
+
+/*    cout << endl;
+
+    for(auto n : commands) {
+        cout << n.first << endl;
+        for(string s : n.second) {
+            cout << s << endl;
+        }
+        cout << endl;
+    } */
+
+    compile(sorted, g, commands);
 }
