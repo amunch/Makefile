@@ -128,7 +128,27 @@ void compile(vector<string> sorted, Graph &g, Graph &commands) {
     }
 }
 
-int main() {
+void BFS(Graph &g, Graph &partial, string target) {
+    set<string> marked;   
+    queue<string> frontier;
+    frontier.push(target);
+
+    while(!frontier.empty()) {
+        string v = frontier.front();
+        frontier.pop();
+
+        if(marked.find(v) != marked.end()) {
+            continue;
+        }
+        partial[v] = g[v];
+        marked.insert(v);
+        for(auto i : g[v]) {
+            frontier.push(i);
+        }
+    }
+}
+
+int main(int argc, char* argv[]) {
     ifstream file_in("sample_make");
 
     if(!file_in.good()) {
@@ -139,22 +159,29 @@ int main() {
     Graph g;
     Graph to_sort;
     Graph commands;
+    Graph partial;
 
     load_graph(g, to_sort, commands, file_in);   
-    dump_graph(g);
 
-    map<string, size_t> degrees = calculate_degrees(g, true);
-    vector<string> sorted = topological_sort(degrees, to_sort, true);
+    if(argc > 1) {
+        for(int i = 1; i < argc; i++) {
+            partial.clear();
+            string target = argv[i];
+            BFS(g, partial, target);
 
-/*    cout << endl;
+            dump_graph(partial);
 
-    for(auto n : commands) {
-        cout << n.first << endl;
-        for(string s : n.second) {
-            cout << s << endl;
+            map<string, size_t> degrees = calculate_degrees(partial, true);
+            vector<string> sorted = topological_sort(degrees, to_sort, true);
+
+            compile(sorted, partial, commands);
         }
-        cout << endl;
-    } */
+    } else {
+        dump_graph(g);
 
-    compile(sorted, g, commands);
+        map<string, size_t> degrees = calculate_degrees(g, true);
+        vector<string> sorted = topological_sort(degrees, to_sort, true);
+
+        compile(sorted, g, commands);
+    }
 }
