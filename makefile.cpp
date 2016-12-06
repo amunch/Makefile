@@ -18,13 +18,52 @@ using namespace std;
 
 typedef map<string, vector<string> > Graph;
 
-void load_graph(Graph &g, Graph &to_sort, Graph &commands, ifstream &file) {
+//checks if there is a variabe and replaces it
+string check_var(string cmd,map<string,string> &globals) {
+	stringstream ss(cmd);
+	string word;
+	string line;
+	bool first = true; //so we don't add a space at the start
+	while(ss >> word) { //for each word
+		if(!first) { //add space if not 1st
+			line+=" ";	
+		}
+		first=false;
+		if(word[0] == '$' && word[1] == '(' && word[word.size()-1]==')') { //we have a variab;e
+			string vname = word.substr(2,word.size()-3);
+			if(globals.find(vname)!=globals.end()) { //we have the value
+				word = globals[vname]; //replace it
+			}			
+		}
+		line+=word; //add it to the new line
+	} 	
+	return line;
+}
+
+void load_graph(Graph &g, Graph &to_sort, Graph &commands, map<string,string> &globals, ifstream &file) {
     string line;
     string prev_line;    
 
     g.clear();
-        
+   
+    bool poss_globals = true;
+    
     while (getline(file, line)) {
+	if(line[0] == '#' || line == "\n") { //the line is a comment
+		continue;
+	}
+	if(poss_globals) {
+		size_t eq_split = line.find('=');
+		if(eq_split==string::npos) {
+			poss_globals = false;
+		} else {
+			string var_tar = line.substr(0,eq_split);
+			string var_val = line.substr(eq_split+1, line.size() - eq_split);
+			boost::trim(var_tar); boost::trim(var_val);
+			globals[var_tar]=var_val;
+			continue;					
+		}
+	}
         size_t split = line.find(':');
         if (split == string::npos) {
             if(!line.empty()) {
@@ -37,7 +76,9 @@ void load_graph(Graph &g, Graph &to_sort, Graph &commands, ifstream &file) {
         string sources = line.substr(split + 1, line.size() - split);
  
         boost::trim(target);
-        boost::trim(sources);
+        target = check_var(target,globals);
+	boost::trim(sources);
+	sources = check_var(sources,globals);
     
         stringstream ss(sources);
         string source;
@@ -117,27 +158,36 @@ vector<string> topological_sort(map<string, size_t> degrees, Graph &g, bool dump
     return sorted;
 }
 
+//returns true if the file exists
+bool file_exist(string filename) {
+	ifstream f(filename.c_str());
+	return f.good(); //true if it exists
+}
+
+//returns if we need to recomple based on last changed and if files are missing
 bool checkdeptime(Graph &g, map<string,int> &times,string s) {	
 	bool noupdate = true;
-	for(auto dep : g[s]) {
+	for(auto dep : g[s]) { //for each dependent
 		struct stat st;
 		int ierr = stat(dep.c_str(),&st);
-		int newtime = st.st_mtime;
-		if(times[dep]<newtime) {
-			times[dep] = newtime;
+		int newtime = st.st_mtime; //get last changed time
+		if(times[dep]<newtime || !file_exist(s)) { //if we need to recompile
+			times[dep] = newtime; //update time
 			noupdate= false;
 		}
 	}
-	return noupdate;
+	return noupdate; //no need to recompie
 } 
 
-void compile(vector<string> sorted, Graph &g, Graph &commands, string target,map<string,int> &times) {
+
+void compile(vector<string> sorted,Graph &g,Graph &commands,string target,map<string,int> &times,map<string,string> &globals) {
     if(!sorted.empty()) {
         for (auto s : sorted) {
             if(g.find(s) != g.end()) {
 		if(!checkdeptime(g,times,s)) {
                 	vector<string> to_run = commands[s];
                 	for(auto r : to_run) {
+				r = check_var(r,globals);
                     		cout << r << endl;
                     		system(r.c_str());   
                 	}
@@ -209,11 +259,12 @@ int main(int argc, char* argv[]) {
     Graph to_sort;
     Graph commands;
     Graph partial;
+    map<string,string> globals;
 
     map<string,int> previous_times= getprevtimes();
   
-    load_graph(g, to_sort, commands, file_in);   
-
+    load_graph(g, to_sort, commands, globals, file_in);   
+   
     if(argc > 1) {
         for(int i = 1; i < argc; i++) {
             partial.clear();
@@ -227,7 +278,7 @@ int main(int argc, char* argv[]) {
 
             dump_graph(commands);           
 
-            compile(sorted, partial, commands, target,previous_times);
+            compile(sorted, partial, commands, target,previous_times,globals);
         }
     } else {
         dump_graph(g);
@@ -235,7 +286,7 @@ int main(int argc, char* argv[]) {
         map<string, size_t> degrees = calculate_degrees(g, true);
         vector<string> sorted = topological_sort(degrees, to_sort, true);
 
-        compile(sorted, g, commands, "placeholder",previous_times);
+        compile(sorted, g, commands, "placeholder",previous_times,globals);
     }
     updateTimes(previous_times);
 }

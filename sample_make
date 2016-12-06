@@ -1,9 +1,14 @@
+# Hello
+CC = g++
+SOURCES = yo.o fact.o
+TARGET = yo.o
+
 all: hello
 
-hello: yo.o fact.o
-    g++ yo.o fact.o -o hello
+hello: $(SOURCES)
+    $(CC) yo.o fact.o -o hello
 
-yo.o: yo.cpp
+$(TARGET): yo.cpp
     g++ -c yo.cpp
 
 fact.o: fact.cpp
