@@ -8,3 +8,6 @@ yo.o: yo.cpp
 
 fact.o: fact.cpp
     g++ -c fact.cpp
+
+clean:
+    rm *.o

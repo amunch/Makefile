@@ -41,9 +41,8 @@ void load_graph(Graph &g, Graph &to_sort, Graph &commands, ifstream &file) {
         while (ss >> source) {
             g[target].push_back(source);
             to_sort[source].push_back(target);
-
-            prev_line = target;
         }
+        prev_line = target;
     }
 }
 
@@ -115,15 +114,22 @@ vector<string> topological_sort(map<string, size_t> degrees, Graph &g, bool dump
     return sorted;
 }
 
-void compile(vector<string> sorted, Graph &g, Graph &commands) {
-    cout << endl;
-    for (auto s : sorted) {
-        if(g.find(s) != g.end()) {
-            vector<string> to_run = commands[s];
-            for(auto r : to_run) {
-                cout << r << endl;
-                system(r.c_str());   
+void compile(vector<string> sorted, Graph &g, Graph &commands, string target) {
+    if(!sorted.empty()) {
+        for (auto s : sorted) {
+            if(g.find(s) != g.end()) {
+                vector<string> to_run = commands[s];
+                for(auto r : to_run) {
+                    cout << r << endl;
+                    system(r.c_str());   
+                }
             }
+        }
+    } else {
+        vector<string> to_run = commands[target];
+        for(auto r : to_run) {
+            cout << r << endl;
+            system(r.c_str());
         }
     }
 }
@@ -174,7 +180,9 @@ int main(int argc, char* argv[]) {
             map<string, size_t> degrees = calculate_degrees(partial, true);
             vector<string> sorted = topological_sort(degrees, to_sort, true);
 
-            compile(sorted, partial, commands);
+            dump_graph(commands);           
+
+            compile(sorted, partial, commands, target);
         }
     } else {
         dump_graph(g);
@@ -182,6 +190,6 @@ int main(int argc, char* argv[]) {
         map<string, size_t> degrees = calculate_degrees(g, true);
         vector<string> sorted = topological_sort(degrees, to_sort, true);
 
-        compile(sorted, g, commands);
+        compile(sorted, g, commands, "placeholder");
     }
 }
