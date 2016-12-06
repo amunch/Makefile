@@ -8,6 +8,9 @@
 #include <queue>
 #include <stdio.h>
 #include <cstring>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include <boost/algorithm/string/trim.hpp>
 
@@ -114,15 +117,33 @@ vector<string> topological_sort(map<string, size_t> degrees, Graph &g, bool dump
     return sorted;
 }
 
-void compile(vector<string> sorted, Graph &g, Graph &commands, string target) {
+bool checkdeptime(Graph &g, map<string,int> &times,string s) {	
+	bool noupdate = true;
+	for(auto dep : g[s]) {
+		struct stat st;
+		int ierr = stat(dep.c_str(),&st);
+		int newtime = st.st_mtime;
+		if(times[dep]<newtime) {
+			times[dep] = newtime;
+			noupdate= false;
+		}
+	}
+	return noupdate;
+} 
+
+void compile(vector<string> sorted, Graph &g, Graph &commands, string target,map<string,int> &times) {
     if(!sorted.empty()) {
         for (auto s : sorted) {
             if(g.find(s) != g.end()) {
-                vector<string> to_run = commands[s];
-                for(auto r : to_run) {
-                    cout << r << endl;
-                    system(r.c_str());   
-                }
+		if(!checkdeptime(g,times,s)) {
+                	vector<string> to_run = commands[s];
+                	for(auto r : to_run) {
+                    		cout << r << endl;
+                    		system(r.c_str());   
+                	}
+		} else {
+			cout<<"Nothing changed for "<<s<<" so nothing done for it."<<endl;
+		}
             }
         }
     } else {
@@ -154,6 +175,28 @@ void BFS(Graph &g, Graph &partial, string target) {
     }
 }
 
+map<string,int> getprevtimes() {
+	map<string,int> prev;
+	ifstream file;
+	file.open(".time.txt");
+	string name;
+	while(file>>name) {
+		int time;
+		file >> time;
+		prev[name]=time;
+	}
+	return prev;
+}
+
+void updateTimes(map<string,int> times) {
+	system("rm .time.txt");
+	ofstream file;
+	file.open(".time.txt");
+	for(auto s : times) {
+		file<<s.first<<" "<<s.second<<endl;
+	}
+}
+
 int main(int argc, char* argv[]) {
     ifstream file_in("sample_make");
 
@@ -167,6 +210,8 @@ int main(int argc, char* argv[]) {
     Graph commands;
     Graph partial;
 
+    map<string,int> previous_times= getprevtimes();
+  
     load_graph(g, to_sort, commands, file_in);   
 
     if(argc > 1) {
@@ -182,7 +227,7 @@ int main(int argc, char* argv[]) {
 
             dump_graph(commands);           
 
-            compile(sorted, partial, commands, target);
+            compile(sorted, partial, commands, target,previous_times);
         }
     } else {
         dump_graph(g);
@@ -190,6 +235,7 @@ int main(int argc, char* argv[]) {
         map<string, size_t> degrees = calculate_degrees(g, true);
         vector<string> sorted = topological_sort(degrees, to_sort, true);
 
-        compile(sorted, g, commands, "placeholder");
+        compile(sorted, g, commands, "placeholder",previous_times);
     }
+    updateTimes(previous_times);
 }
