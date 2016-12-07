@@ -32,7 +32,7 @@ string check_var(string cmd,map<string,string> &globals,string prev_target,Graph
 		first=false;
 		if(word == "$@" || word == "$^" || word == "$<") { //macros
 			if(word=="$@") { //the target on previous line
-				word = prev_target;
+				line += prev_target;
 			} else if (word== "$^") { //all items on dependency list
 				bool first_one=true; //dont add space for first one
 				for(auto s : g[prev_target]) {
