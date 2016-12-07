@@ -34,33 +34,33 @@ int main(int argc, char* argv[]) {
     Graph commands;
     Graph partial;
     map<string,string> globals;*/
-
+    //get previous times
     mg.previous_times= mg.getprevtimes();
-  
+    //load the graphs
     mg.load_graph(mg.g, mg.to_sort, mg.commands, mg.globals, file_in);   
    
-    if(argc > 1) {
-        for(int i = 1; i < argc; i++) {
-            mg.partial.clear();
-            string target = argv[i];
-            mg.BFS(mg.g, mg.partial, target);
+    if(argc > 1) { //if we have command line arguments
+        for(int i = 1; i < argc; i++) { //go through each item we want to do
+            mg.partial.clear(); //clear previous graph
+            string target = argv[i]; //target for this time
+            mg.BFS(mg.g, mg.partial, target); //find it
 
-            mg.dump_graph(mg.partial);
+            //mg.dump_graph(mg.partial);
 
-            mg.degrees = mg.calculate_degrees(mg.partial, true);
-            mg.sorted = mg.topological_sort(mg.degrees, mg.to_sort, true);
+            mg.degrees = mg.calculate_degrees(mg.partial, false); //get degrees for each file
+            mg.sorted = mg.topological_sort(mg.degrees, mg.to_sort, false); //sort it
 
-            mg.dump_graph(mg.commands);           
-
+            //mg.dump_graph(mg.commands);           
+  	    //run the commands
             mg.compile(mg.sorted, mg.partial, mg.commands, target,mg.previous_times,mg.globals);
         }
-    } else {
-        mg.dump_graph(mg.g);
+    } else { //run all
+        //mg.dump_graph(mg.g);
 
-        mg.degrees = mg.calculate_degrees(mg.g, true);
-        mg.sorted = mg.topological_sort(mg.degrees, mg.to_sort, true);
-
+        mg.degrees = mg.calculate_degrees(mg.g, false); //get degrees for each item
+        mg.sorted = mg.topological_sort(mg.degrees, mg.to_sort, false); //sort it
+	//run the commands
         mg.compile(mg.sorted, mg.g, mg.commands, "placeholder",mg.previous_times,mg.globals);
     }
-    mg.updateTimes(mg.previous_times);
+    mg.updateTimes(mg.previous_times); //update the times
 }
