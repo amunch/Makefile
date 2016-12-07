@@ -12,7 +12,7 @@ $(TARGET): yo.cpp
     g++ -c yo.cpp
 
 fact.o: fact.cpp
-    g++ -c fact.cpp
+    g++ -c $<
 
 clean:
     rm *.o

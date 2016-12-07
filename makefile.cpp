@@ -19,23 +19,42 @@ using namespace std;
 typedef map<string, vector<string> > Graph;
 
 //checks if there is a variabe and replaces it
-string check_var(string cmd,map<string,string> &globals) {
+string check_var(string cmd,map<string,string> &globals,string prev_target,Graph &g) {
 	stringstream ss(cmd);
 	string word;
 	string line;
 	bool first = true; //so we don't add a space at the start
 	while(ss >> word) { //for each word
+		bool nonglobal=false;
 		if(!first) { //add space if not 1st
 			line+=" ";	
 		}
 		first=false;
-		if(word[0] == '$' && word[1] == '(' && word[word.size()-1]==')') { //we have a variab;e
+		if(word == "$@" || word == "$^" || word == "$<") { //macros
+			if(word=="$@") { //the target on previous line
+				word = prev_target;
+			} else if (word== "$^") { //all items on dependency list
+				bool first_one=true; //dont add space for first one
+				for(auto s : g[prev_target]) {
+					if(!first_one) { //not the first one
+						line+=" ";
+					}
+					first_one=false;
+					line+=s; //add the line
+				}
+			} else { //word = $< which is 1st item in dependency list
+				line+=g[prev_target][0];
+			}
+			nonglobal=true;
+		} else if(word[0] == '$' && word[1] == '(' && word[word.size()-1]==')') { //we have a global variable
 			string vname = word.substr(2,word.size()-3);
 			if(globals.find(vname)!=globals.end()) { //we have the value
 				word = globals[vname]; //replace it
 			}			
 		}
-		line+=word; //add it to the new line
+		if(!nonglobal) { //not a global variable
+			line+=word; //add it to the new line
+		}
 	} 	
 	return line;
 }
@@ -76,9 +95,9 @@ void load_graph(Graph &g, Graph &to_sort, Graph &commands, map<string,string> &g
         string sources = line.substr(split + 1, line.size() - split);
  
         boost::trim(target);
-        target = check_var(target,globals);
+        target = check_var(target,globals,"",g);
 	boost::trim(sources);
-	sources = check_var(sources,globals);
+	sources = check_var(sources,globals,prev_line,g);
     
         stringstream ss(sources);
         string source;
@@ -187,7 +206,7 @@ void compile(vector<string> sorted,Graph &g,Graph &commands,string target,map<st
 		if(!checkdeptime(g,times,s)) {
                 	vector<string> to_run = commands[s];
                 	for(auto r : to_run) {
-				r = check_var(r,globals);
+				r = check_var(r,globals,s,g);
                     		cout << r << endl;
                     		system(r.c_str());   
                 	}
