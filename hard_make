@@ -1,0 +1,13 @@
+CC=	g++
+SOURCES=	yo.o
+TARGET=	yo.o
+
+all: hello
+
+hello: $(SOURCES)
+	$(CC) $^ -o hello
+
+$(TARGET): yo.cpp
+	$(CC) -c yo.cpp -o $@
+clean:
+	rm *.o

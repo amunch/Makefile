@@ -26,8 +26,8 @@ typedef map<string, vector<string> > Graph;
 
 class Make_Graph {
     public:
-	void updateTimes(); //update the times in the .times file
-	void getprevtimes(); //read in the previous times from the file
+	void updateTimes(string); //update the times in the .times file
+	void getprevtimes(string); //read in the previous times from the file
 	void BFS(string); //find an item in the graph using BFS
 
 	//running the actual commands

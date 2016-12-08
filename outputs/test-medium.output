@@ -1,0 +1,2 @@
+g++ -c yo.cpp
+g++ yo.o -o hello

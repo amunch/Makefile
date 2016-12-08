@@ -255,9 +255,9 @@ void Make_Graph::BFS(string target) {
 }
 
 //get the previous times from file
-void Make_Graph::getprevtimes() {
+void Make_Graph::getprevtimes(string to_open) {
 	ifstream file;
-	file.open(".time.txt"); //open file
+	file.open("." + to_open + ".time"); //open file
 	string name;
 	while(file >> name) { //get the name of file
 		int time;
@@ -267,12 +267,13 @@ void Make_Graph::getprevtimes() {
 }
 
 //put the new times in the file
-void Make_Graph::updateTimes() {
-	try {
-            system("rm .time.txt"); //remove the file to clear
-        } catch(...) {}
+void Make_Graph::updateTimes(string to_open) {
+/*	string remove = "rm ." + to_open + ".time";
+        try {
+            system(remove.c_str()); //remove the file to clear
+        } catch(...) {} */
 	ofstream file;
-	file.open(".time.txt"); //open
+	file.open("." + to_open + ".time"); //open
 	for(auto s : previous_times) { //go through map writing to file
 	    file<<s.first<<" "<<s.second<<endl;
 	}

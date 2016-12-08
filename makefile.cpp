@@ -33,8 +33,6 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    cout << to_open << '\t' << argc;
-
     ifstream file_in(to_open);
 
     if(!file_in.good()) {
@@ -45,7 +43,7 @@ int main(int argc, char* argv[]) {
     Make_Graph mg;
 
     //get previous times
-    mg.getprevtimes();
+    mg.getprevtimes(to_open);
     //load the graphs
     mg.load_graph(file_in);   
    
@@ -71,5 +69,5 @@ int main(int argc, char* argv[]) {
         //run the commands
         mg.compile("", false);
     }
-    mg.updateTimes(); //update the times 
+    mg.updateTimes(to_open); //update the times 
 }
