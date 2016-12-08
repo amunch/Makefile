@@ -45,6 +45,7 @@ int main(int argc, char* argv[]) {
     //get previous times
     mg.getprevtimes(to_open);
     //load the graphs
+ //   cout << "TARGET -> DEPENDENCIES" << endl;
     mg.load_graph(file_in);   
    
     
@@ -63,7 +64,9 @@ int main(int argc, char* argv[]) {
             mg.compile(target, true); 
         }
     } else { //run all
+ //       cout << endl << "DEGREES" << endl;
         mg.calculate_degrees(false); //get degrees for each item
+   //     cout << endl << "TOPOLOGICAL SORT" << endl;
         mg.topological_sort(false); //sort it
 	
         //run the commands

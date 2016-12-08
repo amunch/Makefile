@@ -115,7 +115,7 @@ void Make_Graph::load_graph(ifstream &file) {
 
 //prints out the graphs
 void Make_Graph::dump_graph(Graph &to_dump) {
-    cout << "target -> dependencies {" << endl;
+    cout << "{" << endl;
     for (auto &pair : to_dump) { //for each pair in graph
         auto target  = pair.first;
         auto sources = pair.second;
@@ -230,6 +230,7 @@ void Make_Graph::compile(string target, bool part) {
     if(!ranCommand) {
         cout << "make: nothing to be done for '" << sorted[sorted.size() - 1] << "'." << endl;
     }
+
 }
 
 //search graph for target
