@@ -1,0 +1,4 @@
+image: amunch/Makefile:1
+test:
+  script:
+    - make test
