@@ -37,4 +37,4 @@ test-time: make_file
 	@./measure ./make_file -f hard_make 2>&1 | tail -n 1 | awk '{ if ($$1 > 1.0) { print "Time limit exceeded"; exit 1} }'
 
 clean:
-	rm *.o hello make_file
+	rm *.o hello make_file .*.time
