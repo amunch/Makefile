@@ -21,7 +21,21 @@ typedef map<string, vector<string> > Graph;
 
 
 int main(int argc, char* argv[]) {
-    ifstream file_in("sample_make");
+    string to_open = "sample_make";
+    int c;
+    size_t start = 1;
+
+    while((c = getopt(argc, argv, "f:")) != -1) {
+        switch(c) {
+            case 'f':
+                to_open = optarg;
+                start += 2;
+        }
+    }
+
+    cout << to_open << '\t' << argc;
+
+    ifstream file_in(to_open);
 
     if(!file_in.good()) {
         cout << "File does not exist!" << endl;
@@ -30,16 +44,14 @@ int main(int argc, char* argv[]) {
 
     Make_Graph mg;
 
-
-
     //get previous times
     mg.getprevtimes();
     //load the graphs
     mg.load_graph(file_in);   
    
-
-    if(argc > 1) { //if we have command line arguments
-        for(int i = 1; i < argc; i++) { //go through each item we want to do
+    
+    if(argc > start) { //if we have command line arguments
+        for(int i = start; i < argc; i++) { //go through each item we want to do
             mg.clear_partial(); //clear previous graph
             
             string target = argv[i]; //target for this time
@@ -59,5 +71,5 @@ int main(int argc, char* argv[]) {
         //run the commands
         mg.compile("", false);
     }
-    mg.updateTimes(); //update the times
+    mg.updateTimes(); //update the times 
 }
