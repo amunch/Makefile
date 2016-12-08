@@ -22,7 +22,7 @@ using namespace std;
 typedef map<string, vector<string> > Graph;
 
 //checks if there is a variabe and replaces it
-string Make_Graph::check_var(string cmd,map<string,string> &globals,string prev_target,Graph &g) {
+string Make_Graph::check_var(string cmd, string prev_target) {
 	stringstream ss(cmd);
 	string word;
 	string line;
@@ -63,7 +63,7 @@ string Make_Graph::check_var(string cmd,map<string,string> &globals,string prev_
 }
 
 //loads the graphs and maps from the makefile
-void Make_Graph::load_graph(Graph &g, Graph &to_sort, Graph &commands, map<string,string> &globals, ifstream &file) {
+void Make_Graph::load_graph(ifstream &file) {
     string line;
     string prev_line;    
 
@@ -99,9 +99,9 @@ void Make_Graph::load_graph(Graph &g, Graph &to_sort, Graph &commands, map<strin
         string sources = line.substr(split + 1, line.size() - split);
  
         boost::trim(target);
-        target = check_var(target,globals,"",g); //check if there is a variables
+        target = check_var(target, ""); //check if there is a variables
 	boost::trim(sources);
-	sources = check_var(sources,globals,prev_line,g); //again check for variabe
+	sources = check_var(sources, prev_line); //again check for variabe
     
         stringstream ss(sources);
         string source;
@@ -114,9 +114,9 @@ void Make_Graph::load_graph(Graph &g, Graph &to_sort, Graph &commands, map<strin
 }
 
 //prints out the graphs
-void Make_Graph::dump_graph(Graph &g) {
+void Make_Graph::dump_graph(Graph &to_dump) {
     cout << "target -> dependencies {" << endl;
-    for (auto &pair : g) { //for each pair in graph
+    for (auto &pair : to_dump) { //for each pair in graph
         auto target  = pair.first;
         auto sources = pair.second;
         for (auto &source : sources) { //go through and print it out
@@ -128,9 +128,7 @@ void Make_Graph::dump_graph(Graph &g) {
 }
 
 //calculates the degrees for each part of makefile
-map<string, size_t> Make_Graph::calculate_degrees(Graph &g, bool dump) {
-    map<string, size_t> degrees;
-    
+void Make_Graph::calculate_degrees(bool dump) {
     for(auto &pair : g) { //for each pair in graph
         auto target = pair.first;
         auto sources = pair.second;
@@ -146,13 +144,10 @@ map<string, size_t> Make_Graph::calculate_degrees(Graph &g, bool dump) {
             cout << i.first << '\t' << i.second << endl;
         }
     }
-    return degrees;
 }   
 
 //sort the graph based on degrees so that we do it in order to satisfy all degrees
-vector<string> Make_Graph::topological_sort(map<string, size_t> degrees, Graph &g, bool dump) {
-    vector<string> sorted;
-    
+void Make_Graph::topological_sort(bool dump) {
     queue<string> frontier;
 
     for(auto &d : degrees) { //for everythin in degree add things with 0
@@ -167,7 +162,7 @@ vector<string> Make_Graph::topological_sort(map<string, size_t> degrees, Graph &
     
         sorted.push_back(node);
     
-        for(auto &v : g[node]) { //go through everything dependent on that
+        for(auto &v : to_sort[node]) { //go through everything dependent on that
             degrees[v] -= 1; //subtract 1
     
             if(degrees[v] == 0) { //push if 0 degrees now
@@ -180,8 +175,6 @@ vector<string> Make_Graph::topological_sort(map<string, size_t> degrees, Graph &
             cout << n << endl;
         }
     }
-
-    return sorted;
 }
 
 //returns true if the file exists
@@ -193,14 +186,14 @@ bool Make_Graph::file_exist(string filename) {
 }
 
 //returns if we need to recomple based on last changed and if files are missing
-bool Make_Graph::checkdeptime(Graph &g, map<string,int> &times,string s) {	
+bool Make_Graph::checkdeptime(string s) {	
 	bool noupdate = true;
 	for(auto dep : g[s]) { //for each dependent
 		struct stat st;
 		int ierr = stat(dep.c_str(),&st);
 		int newtime = st.st_mtime; //get last changed time
-		if(times[dep]<newtime || !file_exist(s)) { //if we need to recompile
-			times[dep] = newtime; //update time
+		if(previous_times[dep] < newtime || !file_exist(s)) { //if we need to recompile
+			previous_times[dep] = newtime; //update time
 			noupdate= false;
 		}
 	}
@@ -208,15 +201,16 @@ bool Make_Graph::checkdeptime(Graph &g, map<string,int> &times,string s) {
 } 
 
 //run the actual commands
-void Make_Graph::compile(vector<string> sorted,Graph &g,Graph &commands,string target,map<string,int> &times,map<string,string> &globals) {
+void Make_Graph::compile(string target, bool part) {
     bool ranCommand = false;
+
     if(!sorted.empty()) { //if we have actual things to run
         for (auto s : sorted) { //go through what we have in order
             if(g.find(s) != g.end()) { //if it actually exists
-		if(!checkdeptime(g,times,s)) { //and we need to recompile it
+		if(!checkdeptime(s)) { //and we need to recompile it
                 	vector<string> to_run = commands[s]; //get what we need to run
                 	for(auto r : to_run) {
-				r = check_var(r,globals,s,g); //check for variables
+				r = check_var(r, s); //check for variables
                     		cout << r << endl;
                     		system(r.c_str()); //run them   
                                 ranCommand = true;
@@ -227,7 +221,7 @@ void Make_Graph::compile(vector<string> sorted,Graph &g,Graph &commands,string t
     } else { 
         vector<string> to_run = commands[target];
         for(auto r : to_run) { //loop through what we need to run
-	    r = check_var(r,globals,"",g); //check for variables
+	    r = check_var(r, ""); //check for variables
             cout << r << endl;
             system(r.c_str());
             ranCommand = true;
@@ -239,7 +233,7 @@ void Make_Graph::compile(vector<string> sorted,Graph &g,Graph &commands,string t
 }
 
 //search graph for target
-void Make_Graph::BFS(Graph &g, Graph &partial, string target) {
+void Make_Graph::BFS(string target) {
     set<string> marked;   
     queue<string> frontier;
     frontier.push(target);
@@ -257,30 +251,29 @@ void Make_Graph::BFS(Graph &g, Graph &partial, string target) {
             frontier.push(i);
         }
     }
+    g = partial;
 }
 
 //get the previous times from file
-map<string,int> Make_Graph::getprevtimes() {
-	map<string,int> prev;
+void Make_Graph::getprevtimes() {
 	ifstream file;
 	file.open(".time.txt"); //open file
 	string name;
-	while(file>>name) { //get the name of file
+	while(file >> name) { //get the name of file
 		int time;
 		file >> time; //get time
-		prev[name]=time;
+		previous_times[name] = time;
 	}
-	return prev;
 }
 
 //put the new times in the file
-void Make_Graph::updateTimes(map<string,int> times) {
+void Make_Graph::updateTimes() {
 	try {
             system("rm .time.txt"); //remove the file to clear
         } catch(...) {}
 	ofstream file;
 	file.open(".time.txt"); //open
-	for(auto s : times) { //go through map writing to file
-		file<<s.first<<" "<<s.second<<endl;
+	for(auto s : previous_times) { //go through map writing to file
+	    file<<s.first<<" "<<s.second<<endl;
 	}
 }

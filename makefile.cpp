@@ -29,38 +29,35 @@ int main(int argc, char* argv[]) {
     }
 
     Make_Graph mg;
-    /*Graph g;
-    Graph to_sort;
-    Graph commands;
-    Graph partial;
-    map<string,string> globals;*/
+
+
+
     //get previous times
-    mg.previous_times= mg.getprevtimes();
+    mg.getprevtimes();
     //load the graphs
-    mg.load_graph(mg.g, mg.to_sort, mg.commands, mg.globals, file_in);   
+    mg.load_graph(file_in);   
    
+
     if(argc > 1) { //if we have command line arguments
         for(int i = 1; i < argc; i++) { //go through each item we want to do
-            mg.partial.clear(); //clear previous graph
+            mg.clear_partial(); //clear previous graph
+            
             string target = argv[i]; //target for this time
-            mg.BFS(mg.g, mg.partial, target); //find it
-
-            //mg.dump_graph(mg.partial);
-
-            mg.degrees = mg.calculate_degrees(mg.partial, false); //get degrees for each file
-            mg.sorted = mg.topological_sort(mg.degrees, mg.to_sort, false); //sort it
-
-            //mg.dump_graph(mg.commands);           
+    
+            mg.BFS(target); //find it
+            
+            mg.calculate_degrees(false); //get degrees for each file
+            mg.topological_sort(false); //sort it
+            
   	    //run the commands
-            mg.compile(mg.sorted, mg.partial, mg.commands, target,mg.previous_times,mg.globals);
+            mg.compile(target, true); 
         }
     } else { //run all
-        //mg.dump_graph(mg.g);
-
-        mg.degrees = mg.calculate_degrees(mg.g, false); //get degrees for each item
-        mg.sorted = mg.topological_sort(mg.degrees, mg.to_sort, false); //sort it
-	//run the commands
-        mg.compile(mg.sorted, mg.g, mg.commands, "placeholder",mg.previous_times,mg.globals);
+        mg.calculate_degrees(false); //get degrees for each item
+        mg.topological_sort(false); //sort it
+	
+        //run the commands
+        mg.compile("", false);
     }
-    mg.updateTimes(mg.previous_times); //update the times
+    mg.updateTimes(); //update the times
 }
