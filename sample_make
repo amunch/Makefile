@@ -1,18 +1,13 @@
-# Hello
-CC = g++
-SOURCES = yo.o fact.o
-TARGET = yo.o
+CC=	g++
+SOURCES=	yo.o
+TARGET=	yo.o
 
 all: hello
 
 hello: $(SOURCES)
-    $(CC) yo.o fact.o -o hello
+	$(CC) yo.o -o hello
 
 $(TARGET): yo.cpp
-    g++ -c yo.cpp
-
-fact.o: fact.cpp
-    g++ -c $<
-
+	g++ -c yo.cpp
 clean:
-    rm *.o
+	rm *.o

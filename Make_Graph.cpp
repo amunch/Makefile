@@ -209,6 +209,7 @@ bool Make_Graph::checkdeptime(Graph &g, map<string,int> &times,string s) {
 
 //run the actual commands
 void Make_Graph::compile(vector<string> sorted,Graph &g,Graph &commands,string target,map<string,int> &times,map<string,string> &globals) {
+    bool ranCommand = false;
     if(!sorted.empty()) { //if we have actual things to run
         for (auto s : sorted) { //go through what we have in order
             if(g.find(s) != g.end()) { //if it actually exists
@@ -218,10 +219,9 @@ void Make_Graph::compile(vector<string> sorted,Graph &g,Graph &commands,string t
 				r = check_var(r,globals,s,g); //check for variables
                     		cout << r << endl;
                     		system(r.c_str()); //run them   
+                                ranCommand = true;
                 	}
-		} else { //no need to rerun
-			cout<<"Nothing changed for "<<s<<" so nothing done for it."<<endl;
-		}
+                }
             }
         }
     } else { 
@@ -230,7 +230,11 @@ void Make_Graph::compile(vector<string> sorted,Graph &g,Graph &commands,string t
 	    r = check_var(r,globals,"",g); //check for variables
             cout << r << endl;
             system(r.c_str());
+            ranCommand = true;
         }
+    }
+    if(!ranCommand) {
+        cout << "make: nothing to be done for '" << sorted[sorted.size() - 1] << "'." << endl;
     }
 }
 
@@ -271,7 +275,9 @@ map<string,int> Make_Graph::getprevtimes() {
 
 //put the new times in the file
 void Make_Graph::updateTimes(map<string,int> times) {
-	system("rm .time.txt"); //remove the file to clear
+	try {
+            system("rm .time.txt"); //remove the file to clear
+        } catch(...) {}
 	ofstream file;
 	file.open(".time.txt"); //open
 	for(auto s : times) { //go through map writing to file

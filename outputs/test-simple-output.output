@@ -1,0 +1,3 @@
+g++ -c yo.cpp
+g++ -c fact.cpp
+g++ yo.o fact.o -o hello
