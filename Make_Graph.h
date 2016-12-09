@@ -52,6 +52,8 @@ class Make_Graph {
 
         void clear_partial() {partial.clear();}
 
+	bool checkCycle(); //check for cycles in program
+
     private:
 
         map<string,int> previous_times; // Map of the last times each file was changed.
