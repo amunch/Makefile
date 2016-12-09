@@ -119,9 +119,11 @@ void Make_Graph::dump_graph(Graph &to_dump) {
     for (auto &pair : to_dump) { //for each pair in graph
         auto target  = pair.first;
         auto sources = pair.second;
+	cout << "\t\"" << target << "\" -> \"";
         for (auto &source : sources) { //go through and print it out
-            cout << "\t\"" << target << "\" -> \"" << source << "\";" << endl;
+            cout << source << " ";
         }
+	cout << "\";" << endl;
     }
 
     cout << "}" << endl;
@@ -150,9 +152,9 @@ void Make_Graph::calculate_degrees(bool dump) {
 void Make_Graph::topological_sort(bool dump) {
     queue<string> frontier;
 
-    for(auto &d : degrees) { //for everythin in degree add things with 0
-        if(d.second == 0) {
-            frontier.push(d.first);
+    for(auto d = degrees.rbegin(); d != degrees.rend(); d++) { //for everythin in degree add things with 0
+        if(d->second == 0) {
+            frontier.push(d->first);
         }
     }    
         

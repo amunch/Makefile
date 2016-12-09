@@ -1,0 +1,3 @@
+g++ -c yo.cpp -o yo.o
+g++ -c test_files/test1.cpp test_files/test2.cpp
+g++ yo.o test1.o test2.o -o hello
