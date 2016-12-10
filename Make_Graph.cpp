@@ -284,7 +284,7 @@ void Make_Graph::updateTimes(string to_open) {
 
 //checks for cycles
 bool Make_Graph::checkCycle() {
-	if(sorted.size() != to_sort.size()) {
+	if((sorted.size() != to_sort.size()) && !sorted.empty()) {
 		return true;
 	}
 	return false;
