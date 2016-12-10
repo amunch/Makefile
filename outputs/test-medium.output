@@ -1,2 +1,2 @@
-g++ -c yo.cpp
+g++ -c test_files/yo.cpp
 g++ yo.o -o hello

@@ -1,0 +1,14 @@
+rm *.o hello make_file .*.time
+g++ -std=c++11 Make_Graph.cpp makefile.cpp -o make_file
+OUR MAKEFILE
+============
+g++ -c test_files/yo.cpp
+g++ yo.o -o hello
+0.190u 0.087s 0:00.29 93.1%	0+0k 0+40io 0pf+0w
+rm *.o hello make_file .*.time
+
+LINUX MAKEFILE
+==============
+g++ -c test_files/yo.cpp
+g++ yo.o -o hello
+0.210u 0.068s 0:00.29 93.1%	0+0k 0+32io 0pf+0w

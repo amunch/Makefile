@@ -7,7 +7,7 @@ all: hello
 hello: $(SOURCES)
 	$(CC) $^ -o hello
 
-$(TARGET): yo.cpp
-	$(CC) -c yo.cpp -o $@
+$(TARGET): test_files/yo.cpp
+	$(CC) -c test_files/yo.cpp -o $@
 clean:
 	rm *.o

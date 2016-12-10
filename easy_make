@@ -3,7 +3,7 @@ all: hello
 hello: yo.o
 	g++ yo.o -o hello
 
-yo.o: yo.cpp
-	g++ -c yo.cpp
+yo.o: test_files/yo.cpp
+	g++ -c test_files/yo.cpp
 clean:
 	rm *.o

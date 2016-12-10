@@ -1,18 +1,20 @@
 #/bin/bash
 
 make clean
-touch yo.cpp
-touch hello.cpp
-touch fact.cpp
-touch ./outputs/*
+touch ./test_files/*
 
 make
 
-time make -f harder_make
-
-touch yo.cpp
-touch hello.cpp
-touch fact.cpp
-touch ./outputs/*
-
+echo "OUR MAKEFILE"
+echo "============"
 time ./make_file -f harder_make
+
+make clean
+touch ./test_files/*
+
+echo ""
+
+echo "LINUX MAKEFILE"
+echo "=============="
+
+time make -f harder_make
