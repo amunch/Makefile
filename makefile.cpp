@@ -21,7 +21,7 @@ typedef map<string, vector<string> > Graph;
 
 
 int main(int argc, char* argv[]) {
-    string to_open = "sample_make";
+    string to_open = "easy_make";
     int c;
     size_t start = 1;
 
