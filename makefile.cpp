@@ -59,7 +59,12 @@ int main(int argc, char* argv[]) {
             
             mg.calculate_degrees(false); //get degrees for each file
             mg.topological_sort(false); //sort it
-            
+            //check for a cycle
+	    if(mg.checkCycle()) {
+		cerr << "Graph contains a cycle!" << endl;
+		return EXIT_FAILURE;
+	    }
+		
   	    //run the commands
             mg.compile(target, true); 
         }
@@ -69,7 +74,11 @@ int main(int argc, char* argv[]) {
  //	cout << endl << "TOPOLOGICAL SORT" << endl;
         mg.topological_sort(false); //sort it
 //	cout << endl;
-        //run the commands
+        if(mg.checkCycle()) { //check for a cycle
+		cerr<< "Graph contains a cycle!" <<endl;
+		return EXIT_FAILURE;
+	}
+	//run the commands
         mg.compile("", false);
     }
     mg.updateTimes(to_open); //update the times 

@@ -281,3 +281,11 @@ void Make_Graph::updateTimes(string to_open) {
 	    file<<s.first<<" "<<s.second<<endl;
 	}
 }
+
+//checks for cycles
+bool Make_Graph::checkCycle() {
+	if(sorted.size() != to_sort.size()) {
+		return true;
+	}
+	return false;
+}
